@@ -266,5 +266,131 @@ local plugins = {
     event = "LazyFile",
     opts = {},
   },
+  {
+    "folke/which-key.nvim",
+    opts = function(_, opts)
+      if require("lazyvim.util").has("noice.nvim") then
+        opts.defaults["<leader>sn"] = { name = "+noice" }
+      end
+    end,
+  },
+  {
+    "nvimdev/dashboard-nvim",
+    event = "VimEnter",
+    opts = function()
+      local logo = [[
+         ██╗      █████╗ ███████╗██╗   ██╗██╗   ██╗██╗███╗   ███╗          Z
+         ██║     ██╔══██╗╚══███╔╝╚██╗ ██╔╝██║   ██║██║████╗ ████║      Z    
+         ██║     ███████║  ███╔╝  ╚████╔╝ ██║   ██║██║██╔████╔██║   z       
+         ██║     ██╔══██║ ███╔╝    ╚██╔╝  ╚██╗ ██╔╝██║██║╚██╔╝██║ z         
+         ███████╗██║  ██║███████╗   ██║    ╚████╔╝ ██║██║ ╚═╝ ██║           
+         ╚══════╝╚═╝  ╚═╝╚══════╝   ╚═╝     ╚═══╝  ╚═╝╚═╝     ╚═╝           
+    ]]
+
+      logo = string.rep("\n", 8) .. logo .. "\n\n"
+
+      local opts = {
+        theme = "doom",
+        hide = {
+          -- this is taken care of by lualine
+          -- enabling this messes up the actual laststatus setting after loading a file
+          statusline = false,
+        },
+        config = {
+          header = vim.split(logo, "\n"),
+        -- stylua: ignore
+        center = {
+          { action = "Telescope find_files",                                     desc = " Find file",       icon = " ", key = "f" },
+          { action = "ene | startinsert",                                        desc = " New file",        icon = " ", key = "n" },
+          { action = "Telescope oldfiles",                                       desc = " Recent files",    icon = " ", key = "r" },
+          { action = "Telescope live_grep",                                      desc = " Find text",       icon = " ", key = "g" },
+          { action = [[lua require("lazyvim.util").telescope.config_files()()]], desc = " Config",          icon = " ", key = "c" },
+          { action = 'lua require("persistence").load()',                        desc = " Restore Session", icon = " ", key = "s" },
+          { action = "LazyExtras",                                               desc = " Lazy Extras",     icon = " ", key = "x" },
+          { action = "Lazy",                                                     desc = " Lazy",            icon = "󰒲 ", key = "l" },
+          { action = "qa",                                                       desc = " Quit",            icon = " ", key = "q" },
+        },
+          footer = function()
+            local stats = require("lazy").stats()
+            local ms = (math.floor(stats.startuptime * 100 + 0.5) / 100)
+            return { "⚡ Neovim loaded " .. stats.loaded .. "/" .. stats.count .. " plugins in " .. ms .. "ms" }
+          end,
+        },
+      }
+
+      for _, button in ipairs(opts.config.center) do
+        button.desc = button.desc .. string.rep(" ", 43 - #button.desc)
+        button.key_format = "  %s"
+      end
+
+      -- close Lazy and re-open when the dashboard is ready
+      if vim.o.filetype == "lazy" then
+        vim.cmd.close()
+        vim.api.nvim_create_autocmd("User", {
+          pattern = "DashboardLoaded",
+          callback = function()
+            require("lazy").show()
+          end,
+        })
+      end
+
+      return opts
+    end,
+  },
+  {
+    "SmiteshP/nvim-navic",
+    lazy = true,
+    init = function()
+      vim.g.navic_silence = true
+      require("lazyvim.util").lsp.on_attach(function(client, buffer)
+        if client.supports_method("textDocument/documentSymbol") then
+          require("nvim-navic").attach(client, buffer)
+        end
+      end)
+    end,
+    opts = function()
+      return {
+        separator = " ",
+        highlight = true,
+        depth_limit = 5,
+        icons = require("lazyvim.config").icons.kinds,
+        lazy_update_context = true,
+      }
+    end,
+  },
+  {
+    "echasnovski/mini.animate",
+    event = "VeryLazy",
+    opts = function()
+      -- don't use animate when scrolling with the mouse
+      local mouse_scrolled = false
+      for _, scroll in ipairs({ "Up", "Down" }) do
+        local key = "<ScrollWheel" .. scroll .. ">"
+        vim.keymap.set({ "", "i" }, key, function()
+          mouse_scrolled = true
+          return key
+        end, { expr = true })
+      end
+
+      local animate = require("mini.animate")
+      return {
+        resize = {
+          timing = animate.gen_timing.linear({ duration = 100, unit = "total" }),
+        },
+        scroll = {
+          timing = animate.gen_timing.linear({ duration = 150, unit = "total" }),
+          subscroll = animate.gen_subscroll.equal({
+            predicate = function(total_scroll)
+              if mouse_scrolled then
+                mouse_scrolled = false
+                return false
+              end
+              return total_scroll > 1
+            end,
+          }),
+        },
+      }
+    end,
+  },
 }
 return plugins
