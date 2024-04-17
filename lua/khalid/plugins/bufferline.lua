@@ -5,10 +5,10 @@ return {
   opts = {
     options = {
       mode = "tabs",
-      separator_style = "thick",
-      indicator = {
-        style = 'none'
-      },
+      separator_style = "slant",
+      -- indicator = {
+      --   style = 'none'
+      -- },
     },
   },
 }

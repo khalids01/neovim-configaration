@@ -3,7 +3,7 @@ vim.g.mapleader = " "
 local keymap = vim.keymap
 
 -- normal mode
-keymap.set("i", "kj", "<Esc>")
+keymap.set("i", "kj", "<Esc>", { desc = "Exit insert mode with kj" })
 
 -- save file with ctrl-s
 vim.api.nvim_set_keymap("n", "<C-s>", ":w<CR>", { noremap = true })
@@ -25,7 +25,7 @@ keymap.set("n", "<leader>-", "<C-a>", { desc = "decrement number" })
 keymap.set("n", "<leader>ss", ":vsplit<CR>", { desc = "split window vertically" })
 keymap.set("n", "<leader>sh", ":split<CR>", { desc = "split window horizontally" })
 keymap.set("n", "<leader>sv", "<C-w>=", { desc = "make windows equal size" })
-keymap.set("n", "<leader>sl", "<cmd>close<CR>", { desc = "close current split" })
+keymap.set("n", "<leader>sx", "<cmd>close<CR>", { desc = "close current split" })
 
 -- tab management
 keymap.set("n", "<leader>tt", "<cmd>tabnew<CR>", { desc = "open new tab" })
